@@ -662,6 +662,25 @@ int CalculateInt(const int num_cells, const int num_directions, const std::vecto
 	return 0;
 }
 
+int CalculateIntOmp(const int num_cells, const int num_directions, const std::vector<Type>& illum,
+	const vector<Vector3>& directions, const vector<Type>& squares, vector<Type>& int_scattering) {
+
+#pragma omp parallel default(none) shared(num_cells, num_directions, illum, directions, squares, int_scattering, square_surface)
+		{
+			Vector3 direction;
+
+#pragma omp for
+			for (int num_direction = 0; num_direction < num_directions; ++num_direction) {
+				direction = directions[num_direction];
+				for (size_t cell = 0; cell < num_cells; cell++)
+				{
+					int_scattering[num_direction * num_cells + cell] = GetS(cell, direction, illum, directions, squares);
+				}
+			}
+		}
+	return 0;
+}
+
 
 Vector3 GetInterpolationCoef(const Eigen::Matrix3d& interpolation_nodes, const Eigen::Vector3d& function_value) {
 	//interpolation_nodes --- посто€ные узлы интерпол€ции (формат (в координатах стандартного тетраэдра) {x_i, y_i, 1})

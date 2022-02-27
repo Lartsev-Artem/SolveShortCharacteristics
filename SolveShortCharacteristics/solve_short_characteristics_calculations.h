@@ -53,6 +53,8 @@ Type GetS(const int num_cell, const Vector3& direction, const std::vector<Type>&
 	const vector<Vector3>& directions, const vector<Type>& squares);
 int CalculateInt(const int num_cells, const int num_directions, const std::vector<Type>& illum,
 	const vector<Vector3>& directions, const vector<Type>& squares, vector<Type>& int_scattering);
+int CalculateIntOmp(const int num_cells, const int num_directions, const std::vector<Type>& illum,
+	const vector<Vector3>& directions, const vector<Type>& squares, vector<Type>& int_scattering);
 int Min(const int a, const int b);
 
 size_t MakeEnergy(const vector<Type>& Illum, const vector<Type>& squares, const Type scuare_surface, vector<Type>& energy);
