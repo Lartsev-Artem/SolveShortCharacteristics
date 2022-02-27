@@ -1,0 +1,3 @@
+Error:= 61.52
+Time of iter: 0.11206
+End iter_count number: 1
