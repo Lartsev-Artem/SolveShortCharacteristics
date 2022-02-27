@@ -353,12 +353,11 @@ Type CalculateIllumeOnInnerFace(const int num_cell, const int num_in_face, const
 	}
 }
 
-Type CurGetIllum(const int cur_id, const Vector3 x, const Type s, const Type I_node_prev, const Vector3& cur_direction,
-	const std::vector<Type>& illum_old,
-	const vector<Vector3>& directions, const vector<Type>& squares) {
+Type CurGetIllum(const int cur_id, const int cur_direction, const Vector3 x, const Type s, const Type I_node_prev,
+	   const vector<Type>& int_scattering) {
 	// без интеграла рассеивания
 		{
-			Type Ie = 10;
+	/*		Type Ie = 10;
 			Type k = 10;
 			if (x.norm() > 0.25) { Ie = 0; k = 1; }
 
@@ -370,24 +369,27 @@ Type CurGetIllum(const int cur_id, const Vector3 x, const Type s, const Type I_n
 
 			if (I < 0)
 				I = 0;
-			return I;
-	/*			Type Ie = 10;
-				Type k = 10;
-				if (x.norm() > 0.3) { Ie = 0; k = 1; }
+			return I;*/
 
-				Type I;
-				if (s > 1e-10)
-					I = Ie * (1 - exp(-s * k)) + I_node_prev * exp(-s * k);
-				else
-					I = Ie * (1 + s * k) - I_node_prev * s * k;
-
-				if (I < 0)
-					I = 0;
-				return I;*/
 		}
 
+// test task
+		{
+			Type S = int_scattering[cur_direction * size_grid + cur_id]; //GetS(cur_id, cur_direction, illum_old, directions, squares);
+			Type Ie = rad_en_loose_rate->GetTuple1(cur_id);
+			Type alpha = absorp_coef->GetTuple1(cur_id);
+			Type betta = 0;
+			Type k = alpha + betta;
 
-		Type S = GetS(cur_id, cur_direction, illum_old, directions, squares);
+			Type I = exp(-k * s) * (I_node_prev * k + (exp(k * s) - 1) * (Ie * alpha + S * betta));
+			I /= k;
+
+			if (I < 0)
+				I = 0;
+			return I;
+		}
+
+		Type S = int_scattering[cur_direction * size_grid + cur_id]; //GetS(cur_id, cur_direction, illum_old, directions, squares);
 		Type Ie = 10.;
 		Type alpha = 5.;
 		Type betta = 5.;
@@ -424,7 +426,7 @@ Type GetValueInCenterCell(const int num_cell, const vtkSmartPointer<vtkUnstructu
 			Type s = (center - x0).norm();
 			Type I_x0 = CalculateIllumeOnInnerFace(num_cell, i, vertex_tetra, center, x0, nodes_value);
 
-			value = CurGetIllum(num_cell, x0, s, I_x0, direction, illum_old, directions, squares);
+			//value = CurGetIllum(num_cell, x0, s, I_x0, direction, illum_old, directions, squares);
 			break;
 		}
 	}

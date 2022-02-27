@@ -25,6 +25,7 @@ int ResetNodesValue(std::vector<cell>& nodes_value);
 int ReadNormalFile(std::string& name_file_normals, std::vector<Normals>& normals);
 
 Type NormIllum(const std::vector<Type>& Illum, const std::vector<Type>& Illum2);
+Type NormIllumOmp(const std::vector<Type>& Illum, const std::vector<Type>& Illum2);
 int ReadGraph(const std::string name_file_graph, std::vector<IntId>& sorted_id_cell);
 int ReadGraphBin(const std::string name_file_graph, std::vector<IntId>& sorted_id_cell);
 int SetVertexMatrix(const size_t number_cell, const vtkSmartPointer<vtkUnstructuredGrid>& unstructured_grid, Eigen::Matrix4d& vertex_tetra);
@@ -50,6 +51,8 @@ Type BoundaryFunction(const int id_cell, const Vector3& x, const Vector3& direct
 
 Type GetS(const int num_cell, const Vector3& direction, const std::vector<Type>& illum_old,
 	const vector<Vector3>& directions, const vector<Type>& squares);
+int CalculateInt(const int num_cells, const int num_directions, const std::vector<Type>& illum,
+	const vector<Vector3>& directions, const vector<Type>& squares, vector<Type>& int_scattering);
 int Min(const int a, const int b);
 
 size_t MakeEnergy(const vector<Type>& Illum, const vector<Type>& squares, const Type scuare_surface, vector<Type>& energy);

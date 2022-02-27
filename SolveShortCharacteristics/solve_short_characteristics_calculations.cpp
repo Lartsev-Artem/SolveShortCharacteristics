@@ -269,6 +269,30 @@ Type NormIllum(const std::vector<Type>& Illum, const std::vector<Type>& Illum2) 
 	}
 	return max;
 }
+Type NormIllumOmp(const std::vector<Type>& Illum, const std::vector<Type>& Illum2) {
+	Type max = -1;
+	
+	const int n = Illum.size();
+#pragma omp parallel default(none) shared(n, max, Illum, Illum2)
+	{
+		Type buf;
+#pragma omp for
+		for (size_t i = 0; i < n; i++)
+		{
+			buf = fabs(Illum[i] - Illum2[i]);
+
+			if (buf > max)
+			{
+#pragma omp critical 
+				{
+					if (buf > max)
+						max = buf;
+				}
+			}
+		}
+	}
+	return max;
+}
 
 int ReadGraph(const std::string name_file_graph, std::vector<IntId>& sorted_id_cell) {
 	ifstream ifile;
@@ -623,6 +647,21 @@ Type GetS(const int num_cell, const Vector3& direction, const std::vector<Type>&
 	return S / square_surface;     // было *4PI, но из-за нормировки Gamma разделили на 4PI
 }
 
+int CalculateInt(const int num_cells, const int num_directions, const std::vector<Type>& illum,
+	const vector<Vector3>& directions, const vector<Type>& squares, vector<Type>& int_scattering) {
+
+	Vector3 direction;
+	for (int num_direction = 0; num_direction < num_directions; ++num_direction) {
+		direction = directions[num_direction];
+		for (size_t cell = 0; cell < num_cells; cell++)
+		{
+			int_scattering[num_direction * num_cells + cell] = GetS(cell, direction, illum, directions, squares);
+		}
+	}
+
+	return 0;
+}
+
 
 Vector3 GetInterpolationCoef(const Eigen::Matrix3d& interpolation_nodes, const Eigen::Vector3d& function_value) {
 	//interpolation_nodes --- посто€ные узлы интерпол€ции (формат (в координатах стандартного тетраэдра) {x_i, y_i, 1})
@@ -706,6 +745,7 @@ size_t WriteFileSolution(const std::string name_file_out, const std::vector<Type
 
 	vtkSmartPointer<vtkGenericDataObjectWriter> writer =
 		vtkSmartPointer<vtkGenericDataObjectWriter>::New();
+	writer->SetFileTypeToBinary();
 	writer->SetFileName(name_file_out.c_str());
 	writer->SetInputData(u_grid);
 	writer->Write();

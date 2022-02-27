@@ -29,12 +29,10 @@ std::vector<Type> res_inner_bound;  // значение на внутренней границе
 std::vector<int> id_try_surface;    // id определяющих ячеек внутренней границе
 
 
-size_t ReadFastGridData(const Type count_dir, Str_Type& name_file_graph,
+size_t ReadFastGridData(const int count_dir, const int N, Str_Type& name_file_graph,
 	Str_Type& name_file_in_faces, Str_Type& name_file_out_faces, Str_Type& name_file_count_out_faces, Str_Type& name_file_local_x0, Str_Type& name_file_x,
 	Str_Type& name_file_s, Str_Type& name_file_id_neighbors, Str_Type& name_file_centers,
-	Str_Type& name_file_dist_try, Str_Type& name_file_id_try, Str_Type& name_file_res, std::vector<cell>& grid) {
-
-	int N = 1542;//2233;
+	Str_Type& name_file_dist_try, Str_Type& name_file_id_try, Str_Type& name_file_res, std::vector<cell>& grid) {	
 
 	grid.resize(N);
 
@@ -211,14 +209,12 @@ int main(int argc, char* argv[])
 	std::cout << "\n Reading time of the sphere_direction file: " << _clock << "\n";
 
 	std::vector<cell> grid;
-
-	std::vector<cell> fast_grid;
-	
+		
 	const int count_directions =  directions.size();
 	const int count_cells = size_grid;
 
 	_clock = -omp_get_wtime();
-	if (ReadFastGridData(count_directions, name_file_graph, name_file_in_faces, name_file_out_faces, name_file_count_out_faces,
+	if (ReadFastGridData(count_directions, size_grid, name_file_graph, name_file_in_faces, name_file_out_faces, name_file_count_out_faces,
 		name_file_local_x0, name_file_x, name_file_s, name_file_id_neighbors, name_file_centers,
 		name_file_dist_try, name_file_id_try, name_file_res, grid)) {
 		std::cout << "Error fast reading the data grid vtk\n";
@@ -241,8 +237,10 @@ int main(int argc, char* argv[])
 	*  1  1  1  1
 	*/
 
-	std::vector<Type> Illum(count_cells * directions.size() , 0);
+	std::vector<Type> Illum (count_cells * directions.size(), 0);
 	std::vector<Type> Illum2(count_cells * directions.size(), 0);
+	
+	std::vector<Type> int_scattering(count_cells * directions.size(), 0);	
 
 
 	/*std::vector<Normals> normals;
@@ -262,14 +260,14 @@ int main(int argc, char* argv[])
 	{
 		ReadGraphBin(name_file_graph + to_string(i) + ".bin", sorted_id_cell);
 		for (size_t j = 0; j < count_cells; j++)
-		{
 			full_sorted_id_cell[i*count_cells + j] = sorted_id_cell[j];
-		}	
 	}
 	
 	do {
 		Type _clock = -omp_get_wtime();
 		{
+
+			if (count) CalculateInt(count_cells, count_directions, Illum2, directions, squares, int_scattering);
 
 			/*---------------------------------- далее FOR по направлениям----------------------------------*/
 			for (int num_direction = 0; num_direction < count_directions; ++num_direction)
@@ -311,7 +309,7 @@ int main(int argc, char* argv[])
 
 							Type s = grid[num_cell].s[start_3 + i+ num_node];
 
-							I[num_node] = CurGetIllum(num_cell, x, s, I_x0, direction, Illum2, directions, squares);
+							I[num_node] = CurGetIllum(num_cell, num_direction ,x, s, I_x0, int_scattering);
 						}//num_node
 
 						Vector3 coef;
@@ -345,8 +343,9 @@ int main(int argc, char* argv[])
 		Illum.swap(Illum2);
 		
 		_clock += omp_get_wtime();
-		count++;
-		norm = NormIllum(Illum, Illum2);
+		
+		if (count % 2 == 0) norm = NormIllumOmp(Illum, Illum2);
+
 		std::cout << "Error:= " << norm << '\n';
 		std::cout << "Time of iter: " << _clock << '\n';
 		std::cout << "End iter_count number: " << count << '\n';
@@ -355,7 +354,7 @@ int main(int argc, char* argv[])
 		ofile << "Time of iter: " << _clock << '\n';
 		ofile << "End iter_count number: " << count << '\n';
 		
-
+		count++;
 	} while (norm > accuracy && count < max_number_of_iter);
 
 
