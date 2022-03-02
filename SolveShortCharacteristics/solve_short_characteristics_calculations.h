@@ -66,4 +66,16 @@ size_t WriteFileSolution(const std::string name_file_out, const std::vector<Type
 size_t WriteFileSolution(const std::string name_file_out, const std::vector<Type>& vector_illum, const std::vector<Type>& vector_energy,
 	vtkSmartPointer<vtkUnstructuredGrid>& u_grid);
 
+
+int ReadSizes(const std::string& name_file_size, int& countX, int& countX0, int& countOutC,
+	int& countOut, int& countIn, int& countS, int& countRes, int& countTry);
+
+size_t ReadCompactFastGridData(const int count_dir, const int N,
+	Str_Type& name_file_in_faces, Str_Type& name_file_out_faces, Str_Type& name_file_count_out_faces, Str_Type& name_file_local_x0, Str_Type& name_file_x,
+	Str_Type& name_file_s, Str_Type& name_file_id_neighbors, Str_Type& name_file_centers,
+	Str_Type& name_file_dist_try, Str_Type& name_file_id_try, Str_Type& name_file_res, Str_Type& name_file_sizes, Str_Type& name_file_graph,
+	std::vector<cell>& grid, std::vector<int>& OutC,
+	std::vector<int>& Out, std::vector<int>& In, std::vector<Type>& S, std::vector<Vector3>& X, std::vector<Vector2>& X0,
+	std::vector<Type>& res_inner_bound, std::vector<int>& id_try_surface, vector<IntId>& sorted_id_cell);
+
 #endif

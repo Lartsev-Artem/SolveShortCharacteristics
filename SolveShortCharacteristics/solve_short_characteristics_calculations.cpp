@@ -784,3 +784,121 @@ size_t WriteFileSolution(const std::string name_file_out, const std::vector<Type
 
 	return 0;
 }
+
+
+
+int ReadSizes(const std::string& name_file_size, int& countX, int& countX0, int& countOutC,
+				int& countOut, int& countIn, int& countS, int& countRes, int& countTry) {
+
+	std::ifstream ifile(name_file_size+".txt");
+
+	if (!ifile.is_open()) {
+		printf("Error read files size\n");
+		return 1;
+	}
+
+	ifile >> countTry;
+	ifile >> countX;
+	ifile >> countX0;
+	ifile >> countOutC;
+	ifile >> countOut;
+	ifile >> countIn;
+	ifile >> countS;
+	ifile >> countRes;
+
+	ifile.close();
+	return 0;
+}
+
+
+size_t ReadCompactFastGridData(const int count_dir, const int N,
+	Str_Type& name_file_in_faces, Str_Type& name_file_out_faces, Str_Type& name_file_count_out_faces, Str_Type& name_file_local_x0, Str_Type& name_file_x,
+	Str_Type& name_file_s, Str_Type& name_file_id_neighbors, Str_Type& name_file_centers,
+	Str_Type& name_file_dist_try, Str_Type& name_file_id_try, Str_Type& name_file_res, Str_Type& name_file_sizes, Str_Type& name_file_graph,
+	std::vector<cell>& grid, std::vector<int>& OutC,
+	std::vector<int>& Out, std::vector<int>& In, std::vector<Type>& S, std::vector<Vector3>& X, std::vector<Vector2>& X0,
+	std::vector<Type>& res_inner_bound, std::vector<int>& id_try_surface, vector<IntId>& sorted_id_cell) {
+
+
+	std::unique_ptr<FILE, int(*)(FILE*)> file_graph(fopen((name_file_graph + ".bin").c_str(), "rb"), fclose);
+	if (!file_graph) { printf("file_graph is not opened for writing\n"); return 1; }
+
+	fread_unlocked(sorted_id_cell.data(), sizeof(IntId), sorted_id_cell.size(), file_graph.get());
+	fclose(file_graph.get());
+
+
+	grid.resize(N);
+	int countX, countX0, countOutC, countOut, countIn, countS, countRes, countTry;
+	ReadSizes(name_file_sizes, countX, countX0, countOutC, countOut, countIn, countS, countRes, countTry);
+
+	//name_file_id_neighbors
+	std::unique_ptr<FILE, int(*)(FILE*)> file_id_neighbors(fopen((name_file_id_neighbors + ".bin").c_str(), "rb"), fclose);
+	if (!file_id_neighbors) PRINTF("Error file_id_neighbors\n")
+		for (int i = 0; i < N; i++) {
+			grid[i].neighbours_id_face.resize(4, -5);
+			fread_unlocked(grid[i].neighbours_id_face.data(), sizeof(int), 4, file_id_neighbors.get());
+		}
+	fclose(file_id_neighbors.get());
+
+	res_inner_bound.resize(countRes);
+	id_try_surface.resize(countTry);
+	OutC.resize(countOutC);
+	Out.resize(countOut);
+	In.resize(countIn);
+	S.resize(countS);
+	X.resize(countX);
+	X0.resize(countX0);
+
+	std::unique_ptr<FILE, int(*)(FILE*)> file_res(fopen((name_file_res + ".bin").c_str(), "rb"), fclose);
+	if (!file_res) PRINTF("Error file_res\n")
+
+		std::unique_ptr<FILE, int(*)(FILE*)> file_id(fopen((name_file_id_try + ".bin").c_str(), "rb"), fclose);
+	if (!file_id) PRINTF("Error file_id\n")
+
+		std::unique_ptr<FILE, int(*)(FILE*)> file_count_out(fopen((name_file_count_out_faces + ".bin").c_str(), "rb"), fclose);
+	if (!file_count_out) { printf("file_graph is not opened for writing\n"); return 1; }
+
+	std::unique_ptr<FILE, int(*)(FILE*)> file_out(fopen((name_file_out_faces + ".bin").c_str(), "rb"), fclose);
+	if (!file_out) { printf("file_graph is not opened for writing\n"); return 1; }
+
+	std::unique_ptr<FILE, int(*)(FILE*)> file_in(fopen((name_file_in_faces + ".bin").c_str(), "rb"), fclose);
+	if (!file_in) { printf("file_graph is not opened for writing\n"); return 1; }
+
+	std::unique_ptr<FILE, int(*)(FILE*)> file_x(fopen((name_file_x + ".bin").c_str(), "rb"), fclose);
+	if (!file_x) { printf("file_graph is not opened for writing\n"); return 1; }
+
+	std::unique_ptr<FILE, int(*)(FILE*)> file_x0(fopen((name_file_local_x0 + ".bin").c_str(), "rb"), fclose);
+	if (!file_x0) { printf("file_graph is not opened for writing\n"); return 1; }
+
+	std::unique_ptr<FILE, int(*)(FILE*)> file_s(fopen((name_file_s + ".bin").c_str(), "rb"), fclose);
+	if (!file_s) { printf("file_graph is not opened for writing\n"); return 1; }
+
+
+	fread_unlocked(res_inner_bound.data(), sizeof(Type), countRes, file_res.get());
+
+	fread_unlocked(id_try_surface.data(), sizeof(int), countTry, file_id.get());
+
+	fread_unlocked(S.data(), sizeof(Type), S.size(), file_s.get());
+
+	fread_unlocked(X0.data(), sizeof(Vector2), X0.size(), file_x0.get());
+
+	fread_unlocked(X.data(), sizeof(Vector3), X.size(), file_x.get());
+
+	fread_unlocked(In.data(), sizeof(int), In.size(), file_in.get());
+
+	fread_unlocked(Out.data(), sizeof(int), Out.size(), file_out.get());
+	fread_unlocked(OutC.data(), sizeof(int), OutC.size(), file_count_out.get());
+
+
+	fclose(file_res.get());
+	fclose(file_id.get());
+	fclose(file_count_out.get());
+	fclose(file_out.get());
+	fclose(file_in.get());
+	fclose(file_x.get());
+	fclose(file_x0.get());
+	fclose(file_s.get());
+
+
+	return 0;
+}

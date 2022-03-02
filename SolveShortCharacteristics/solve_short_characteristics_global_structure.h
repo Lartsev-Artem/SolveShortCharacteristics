@@ -11,7 +11,6 @@ typedef Eigen::Vector3d Vector3;
 typedef Eigen::Vector2d Vector2;
 typedef Eigen::Matrix3d Matrix3;
 
-
 #ifdef _MSC_VER
 #define fwrite_unlocked _fwrite_nolock
 #define fread_unlocked  _fread_nolock
@@ -37,25 +36,12 @@ struct cell {
 	std::vector<Vector3> nodes_value;
 	std::vector<int> neighbours_id_face;
 
-	std::vector<int> in_id;   // по 9 чисел на каждое направление
-	std::vector<int> out_id;  // по 3 числа на каждое направление
-	std::vector<Type> s;  // по 9 чисел на каждое направление // init = -1
-
-	std::vector<Vector2> x0_loc;
-	std::vector<Vector3> x;
-
-	std::vector<int> out_count;  // { (0 или 1 или 2)  {число направлений}
-
-	int start_dir1;
-	int start_dir3;
-
 	cell() {
 		//id = -1;
 		nodes_value.resize(4, Vector3(-666, -666, -666));	
-		start_dir1 = 0;
-		start_dir3 = 0;
 	}
 };
+
 
 #define PI 3.14159265358979323846
 const double eps = 1e-10;
@@ -90,5 +76,16 @@ extern int count_negative_interpolation; // число отрицательных значений интерпо
 extern std::vector<Type> res_inner_bound;  // значение на внутренней границе
 
 extern std::vector<int>id_try_surface;
+
+
+extern int posX;
+extern int posX0;
+extern int posOutC;
+extern int posOut;
+extern int posIn;
+extern int posS;
+extern int pos_in_res;
+extern int id_try_pos;
+
 
 #endif
