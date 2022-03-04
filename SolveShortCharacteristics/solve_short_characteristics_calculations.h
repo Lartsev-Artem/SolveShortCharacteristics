@@ -57,6 +57,8 @@ int CalculateIntOmp(const int num_cells, const int num_directions, const std::ve
 	const vector<Vector3>& directions, const vector<Type>& squares, vector<Type>& int_scattering);
 int Min(const int a, const int b);
 
+int MakeStream(const vector<Type>& Illum, const vector<Vector3>& directions, const vector<Type>& squares, const Type scuare_surface, vector<Vector3>& stream);
+int MakeImpuls(const vector<Type>& Illum, const vector<Vector3>& directions, const vector<Type>& squares, const Type scuare_surface, vector<Matrix3>& impuls);
 size_t MakeEnergy(const vector<Type>& Illum, const vector<Type>& squares, const Type scuare_surface, vector<Type>& energy);
 Type IntegarteDirection(const int num_cell, const vector<Type>& Illum, const vector<Type>& squares, const Type scuare_surface);
 
@@ -65,6 +67,12 @@ size_t WriteFileSolution(const std::string name_file_out, const std::vector<Type
 
 size_t WriteFileSolution(const std::string name_file_out, const std::vector<Type>& vector_illum, const std::vector<Type>& vector_energy,
 	vtkSmartPointer<vtkUnstructuredGrid>& u_grid);
+
+size_t WriteFileSolution(const std::string name_file_out, const std::vector<Type>& vector_illum, const std::vector<Type>& vector_energy,
+	const std::vector<Vector3>& vector_stream, const std::vector<Matrix3>& vector_impuls,
+	vtkSmartPointer<vtkUnstructuredGrid>& u_grid);
+size_t WriteFileSolution(const std::string name_file_out, const std::vector<Type>& vector_illum, const std::vector<Type>& vector_energy,
+	const std::vector<Vector3>& vector_stream, const std::vector<Matrix3>& vector_impuls, const std::string& file_vtk);
 
 
 int ReadSizes(const std::string& name_file_size, int& countX, int& countX0, int& countOutC,

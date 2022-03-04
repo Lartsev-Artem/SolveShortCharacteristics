@@ -251,9 +251,16 @@ int main(int argc, char* argv[])
 	ofile.close();
 
 	vector<Type> energy(count_cells);
-	MakeEnergy(Illum, squares, square_surface, energy);
+	vector<Vector3> stream(count_cells);
+	vector<Matrix3> impuls(count_cells);
 
-	WriteFileSolution(out_file_grid_vtk, Illum, energy, name_file_vtk);
+	MakeEnergy(Illum, squares, square_surface, energy);
+	MakeStream(Illum, directions, squares, square_surface, stream);
+	MakeImpuls(Illum, directions, squares, square_surface, impuls);
+	
+
+	WriteFileSolution(out_file_grid_vtk, Illum, energy, stream, impuls, name_file_vtk);
+	//WriteFileSolution(out_file_grid_vtk, Illum, energy, name_file_vtk);
 	return 0;
 }
 

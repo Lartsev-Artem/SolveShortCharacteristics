@@ -699,6 +699,55 @@ int Min(const int a, const int b) {
 	return b;
 }
 
+
+
+Matrix3 IntegarteDirection9(const int num_cell, const vector<Type>& Illum, const vector<Vector3>& directions, const vector<Type>& squares, const Type scuare_surface) {
+	Matrix3 res = Matrix3::Zero();
+	int n = squares.size();  // number of directions
+	int m = Illum.size() / n;  // number of cells
+
+	for (size_t i = 0; i < 3; i++)
+		for (size_t k = 0; k < 3; k++)
+	
+	for (size_t j = 0; j < n; j++) {
+		res(i,k) += directions[j][i] * directions[j][k] * (Illum[m * j + num_cell] * squares[j]);
+	}
+
+	return res / scuare_surface;
+}
+int MakeImpuls(const vector<Type>& Illum, const vector<Vector3>& directions, const vector<Type>& squares, const Type scuare_surface, vector<Matrix3>& impuls) {
+
+	const int n = impuls.size();
+
+	for (size_t i = 0; i < n; ++i) {
+		impuls[i] = IntegarteDirection9(i, Illum, directions, squares, scuare_surface);
+	}
+
+	return 0;
+}
+
+Vector3 IntegarteDirection3(const int num_cell, const vector<Type>& Illum, const vector<Vector3>& directions, const vector<Type>& squares, const Type scuare_surface) {
+	Vector3 res = Vector3::Zero();
+	int n = squares.size();  // number of directions
+	int m = Illum.size() / n;  // number of cells
+	
+	for (size_t i = 0; i < n; i++) {
+		res += directions[i] * (Illum[m * i + num_cell] * squares[i]);
+		}
+
+	return res / scuare_surface;
+}
+int MakeStream(const vector<Type>& Illum, const vector<Vector3>& directions, const vector<Type>& squares, const Type scuare_surface, vector<Vector3>& stream) {
+
+	const int n = stream.size();
+
+	for (size_t i = 0; i < n; ++i) {
+		stream[i] = IntegarteDirection3(i, Illum, directions, squares, scuare_surface);
+	}
+
+	return 0;
+}
+
 size_t MakeEnergy(const vector<Type>& Illum, const vector<Type>& squares, const Type scuare_surface, vector<Type>& energy) {
 
 	const int n = energy.size();
@@ -770,11 +819,78 @@ size_t WriteFileSolution(const std::string name_file_out, const std::vector<Type
 	writer->Write();
 	return 0;
 }
+size_t WriteFileSolution(const std::string name_file_out, const std::vector<Type>& vector_illum, const std::vector<Type>& vector_energy,
+	const std::vector<Vector3>& vector_stream, const std::vector<Matrix3>& vector_impuls,
+	vtkSmartPointer<vtkUnstructuredGrid>& u_grid) {
 
+	int n = u_grid->GetNumberOfCells();
+
+	vtkSmartPointer<vtkDoubleArray> IllumArray =
+		vtkSmartPointer<vtkDoubleArray>::New();
+
+	vtkSmartPointer<vtkDoubleArray> EnergyArray =
+		vtkSmartPointer<vtkDoubleArray>::New();
+
+	vtkSmartPointer<vtkDoubleArray> StreamArray =
+		vtkSmartPointer<vtkDoubleArray>::New();
+	StreamArray->SetNumberOfComponents(3);
+
+	vtkSmartPointer<vtkDoubleArray> ImpulsArray =
+		vtkSmartPointer<vtkDoubleArray>::New();
+	ImpulsArray->SetNumberOfComponents(9);
+
+	
+	for (size_t i = 0; i < n; i++) {
+		EnergyArray->InsertNextTuple1(vector_energy[i]);
+		IllumArray->InsertNextTuple1(vector_illum[i]);  // по первому направлению		
+		StreamArray->InsertNextTuple3(vector_stream[i](0), vector_stream[i](1), vector_stream[i](2));
+		ImpulsArray->InsertNextTuple9(vector_impuls[i](0, 0), vector_impuls[i](0, 1), vector_impuls[i](0, 2),
+									  vector_impuls[i](1, 0), vector_impuls[i](1, 1), vector_impuls[i](1, 2),
+									  vector_impuls[i](2, 0), vector_impuls[i](2, 1), vector_impuls[i](2, 2));
+	}
+	
+	EnergyArray->SetName("energy");
+	u_grid->GetCellData()->AddArray(EnergyArray);
+
+	IllumArray->SetName("illum");
+	u_grid->GetCellData()->AddArray(IllumArray);
+
+
+	StreamArray->SetName("stream");
+	u_grid->GetCellData()->SetActiveVectors("stream");	
+	u_grid->GetCellData()->SetVectors(StreamArray);
+
+
+	ImpulsArray->SetName("impuls");
+	u_grid->GetCellData()->SetActiveTensors("impuls");
+	u_grid->GetCellData()->SetTensors(ImpulsArray);
+
+	vtkSmartPointer<vtkGenericDataObjectWriter> writer =
+		vtkSmartPointer<vtkGenericDataObjectWriter>::New();
+	writer->SetFileTypeToBinary();
+	writer->SetFileName(name_file_out.c_str());
+	writer->SetInputData(u_grid);
+	writer->Write();
+	return 0;
+}
+
+size_t WriteFileSolution(const std::string name_file_out, const std::vector<Type>& vector_illum, const std::vector<Type>& vector_energy,
+	const std::vector<Vector3>& vector_stream, const std::vector<Matrix3>& vector_impuls, const std::string& file_vtk) {
+
+	vtkSmartPointer<vtkUnstructuredGrid> ugrid = 
+		vtkSmartPointer<vtkUnstructuredGrid>::New();
+
+	vtkDataArray* foo;
+	ReadFileVtk(0, file_vtk, ugrid, foo, foo, foo, false);
+
+	WriteFileSolution(name_file_out, vector_illum, vector_energy, vector_stream, vector_impuls, ugrid);
+
+	return 0;
+}
 size_t WriteFileSolution(const std::string name_file_out, const std::vector<Type>& vector_illum, const std::vector<Type>& vector_energy,
 	const std::string& file_vtk) {
 
-	vtkSmartPointer<vtkUnstructuredGrid> ugrid = 
+	vtkSmartPointer<vtkUnstructuredGrid> ugrid =
 		vtkSmartPointer<vtkUnstructuredGrid>::New();
 
 	vtkDataArray* foo;

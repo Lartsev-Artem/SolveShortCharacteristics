@@ -71,7 +71,7 @@ Type CurGetIllum(const int cur_id, const int cur_direction, const Vector3 x, con
 		{
 			Type Ie = 10;
 			Type k = 10;
-			if ((x-Vector3(1,0,0)).norm() > 0.09) { Ie = 0; k = 1; }
+			if ((x - Vector3(1, 0, 0)).norm() > 0.09) { Ie = 0; k = 1; }
 
 			Type I;
 			if (s > 1e-10)
